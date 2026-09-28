@@ -25,7 +25,6 @@ export {
   CrossAxisAlignment,
 } from "./layout/axis";
 export { FlexFit, MainAxisSize } from "./layout/flex";
-export { FloatingActionButtonLocation } from "./layout/fab_location";
 
 export { Container, ContainerComponent } from "./components/container";
 export type { ContainerProps } from "./components/container";
@@ -70,23 +69,152 @@ export type { DividerProps } from "./components/divider";
 export { ListView, ListViewComponent } from "./components/list_view";
 export type { ListViewProps } from "./components/list_view";
 
-export { AppBar, AppBarComponent } from "./material/app_bar";
-export type { AppBarProps } from "./material/app_bar";
-export { Drawer, DrawerComponent, DrawerHeader, DrawerHeaderComponent } from "./material/drawer";
-export type { DrawerProps, DrawerHeaderProps } from "./material/drawer";
+export { Duration } from "./animation/duration";
+export { Curves } from "./animation/curves";
+export type { Curve } from "./animation/curves";
+
+export { Offset } from "./painting/offset";
+export { BoxFit } from "./painting/box_fit";
+export { TextOverflow } from "./painting/text_overflow";
+export { CustomClipper } from "./painting/clipper";
+export { ColorFilter } from "./painting/color_filter";
+
 export {
-  FloatingActionButton,
-  FloatingActionButtonComponent,
-} from "./material/floating_action_button";
-export type { FloatingActionButtonProps } from "./material/floating_action_button";
-export {
-  BottomNavigationBar,
-  BottomNavigationBarComponent,
-  BottomNavigationBarItem,
-} from "./material/bottom_navigation_bar";
+  ClipRect,
+  ClipRectComponent,
+  ClipRRect,
+  ClipRRectComponent,
+  ClipOval,
+  ClipOvalComponent,
+  ClipPath,
+  ClipPathComponent,
+} from "./components/clip";
 export type {
-  BottomNavigationBarProps,
-  BottomNavigationBarItemProps,
-} from "./material/bottom_navigation_bar";
-export { Scaffold, ScaffoldComponent } from "./material/scaffold";
-export type { ScaffoldProps } from "./material/scaffold";
+  ClipRectProps,
+  ClipRRectProps,
+  ClipOvalProps,
+  ClipPathProps,
+} from "./components/clip";
+export { Transform, TransformComponent, RotatedBox, RotatedBoxComponent } from "./components/transform";
+export type { TransformProps, RotatedBoxProps } from "./components/transform";
+export { FittedBox, FittedBoxComponent } from "./components/fitted_box";
+export type { FittedBoxProps } from "./components/fitted_box";
+export {
+  Opacity,
+  OpacityComponent,
+  BackdropFilter,
+  BackdropFilterComponent,
+  ColorFiltered,
+  ColorFilteredComponent,
+  ShaderMask,
+  ShaderMaskComponent,
+} from "./components/effects";
+export type {
+  OpacityProps,
+  BackdropFilterProps,
+  ColorFilteredProps,
+  ShaderMaskProps,
+} from "./components/effects";
+export { CustomPaint, CustomPaintComponent } from "./components/custom_paint";
+export type { CustomPaintProps, CustomPainter, Size } from "./components/custom_paint";
+export {
+  AnimatedContainer,
+  AnimatedContainerComponent,
+  AnimatedOpacity,
+  AnimatedOpacityComponent,
+  AnimatedPadding,
+  AnimatedPaddingComponent,
+  AnimatedAlign,
+  AnimatedAlignComponent,
+  AnimatedPositioned,
+  AnimatedPositionedComponent,
+  AnimatedSize,
+  AnimatedSizeComponent,
+  AnimatedCrossFade,
+  AnimatedCrossFadeComponent,
+  AnimatedSwitcher,
+  AnimatedSwitcherComponent,
+  CrossFadeState,
+} from "./components/animated";
+export type {
+  AnimatedContainerProps,
+  AnimatedOpacityProps,
+  AnimatedPaddingProps,
+  AnimatedAlignProps,
+  AnimatedPositionedProps,
+  AnimatedSizeProps,
+  AnimatedCrossFadeProps,
+  AnimatedSwitcherProps,
+} from "./components/animated";
+export {
+  GestureDetector,
+  GestureDetectorComponent,
+  IgnorePointer,
+  IgnorePointerComponent,
+  AbsorbPointer,
+  AbsorbPointerComponent,
+  MouseRegion,
+  MouseRegionComponent,
+} from "./components/gesture";
+export type {
+  GestureDetectorProps,
+  IgnorePointerProps,
+  AbsorbPointerProps,
+  MouseRegionProps,
+} from "./components/gesture";
+export {
+  Dismissible,
+  DismissibleComponent,
+  Draggable,
+  DraggableComponent,
+  DragTarget,
+  DragTargetComponent,
+  InteractiveViewer,
+  InteractiveViewerComponent,
+} from "./components/interaction";
+export type {
+  DismissibleProps,
+  DraggableProps,
+  DragTargetProps,
+  InteractiveViewerProps,
+} from "./components/interaction";
+export {
+  Wrap,
+  WrapComponent,
+  WrapAlignment,
+  AspectRatio,
+  AspectRatioComponent,
+  OverflowBox,
+  OverflowBoxComponent,
+  Visibility,
+  VisibilityComponent,
+  Offstage,
+  OffstageComponent,
+  GridView,
+  GridViewComponent,
+  PageView,
+  PageViewComponent,
+} from "./components/extra_layout";
+export type {
+  WrapProps,
+  AspectRatioProps,
+  OverflowBoxProps,
+  VisibilityProps,
+  OffstageProps,
+  GridViewProps,
+  PageViewProps,
+} from "./components/extra_layout";
+export {
+  TextSpan,
+  RichText,
+  RichTextComponent,
+  SelectableText,
+  SelectableTextComponent,
+} from "./components/rich_text";
+export type { TextSpanProps, RichTextProps, SelectableTextProps } from "./components/rich_text";
+
+export { Route, RouteComponent } from "./routing/route";
+export type { RouteProps } from "./routing/route";
+export { Router, RouterComponent } from "./routing/router";
+export type { RouterProps } from "./routing/router";
+export type { RouterState } from "./routing/state";

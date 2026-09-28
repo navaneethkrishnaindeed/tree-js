@@ -15,10 +15,23 @@ export abstract class UIComponent {
 
   mount(parent: Element | DocumentFragment): HTMLElement {
     const element = this.createElement();
+    this.host = element;
     element.setAttribute("data-ui", this.kind);
     parent.appendChild(element);
     return element;
   }
+
+  /** Remove this node and its descendants from the DOM and clear `host`. */
+  unmount(): void {
+    for (const child of this.childNodes()) {
+      child.unmount();
+    }
+    this.host?.remove();
+    this.host = undefined;
+  }
+
+  /** Set after `mount()`. Used by animated widgets to patch live CSS. */
+  host?: HTMLElement;
 
   abstract createElement(): HTMLElement;
 

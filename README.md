@@ -5,21 +5,25 @@ A small TypeScript UI component system with a **Flutter/Dart-like constructor AP
 It is not a Flutter port. There is no `StatelessWidget`, `StatefulWidget`, `State`, `BuildContext`, React, JSX, or virtual DOM. You compose configurable UI objects and mount them.
 
 ```ts
-const app = Scaffold({
-  appBar: AppBar({
-    title: Text({ text: "Home" }),
-  }),
-  body: ListView({
+const app = Container({
+  padding: EdgeInsets.all(24),
+  child: Column({
+    gap: 16,
     children: [
-      ListTile({
-        leading: Icon({ icon: Icons.person }),
-        title: Text({ text: "Account" }),
+      Text({
+        text: "Hello World",
+        style: TextStyle({
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+        }),
+      }),
+      Button({
+        text: "Get Started",
+        onPressed: () => {
+          console.log("started");
+        },
       }),
     ],
-  }),
-  floatingActionButton: FloatingActionButton({
-    child: Icon({ icon: Icons.add }),
-    onPressed: () => console.log("fab"),
   }),
 });
 
@@ -47,10 +51,11 @@ tree-js/
   src/
     index.ts                 Public exports
     core/                    UIComponent, style translator, mount/toTree
-    painting/                EdgeInsets, colors, decorations, text styles, icons, theme
-    layout/                  FontWeight, alignments, FlexFit, FAB locations
-    components/              primitives (Container, Row, Text, Icon, ...)
-    material/                Scaffold, AppBar, Drawer, FAB, BottomNavigationBar
+    painting/                EdgeInsets, colors, decorations, clippers, filters
+    animation/               Duration, Curves
+    layout/                  FontWeight, alignments, FlexFit
+    routing/                 Router, Route, path matching
+    components/              Container, clip, transform, animated, gestures, ...
   demo/
     index.html
     main.ts                  Runnable example
@@ -165,11 +170,16 @@ Open DevTools: this is a normal web page, not a canvas or fake document.
 | `ListTile` | flex row `<div>` |
 | `Card` | elevated `<div>` |
 | `Divider` | horizontal rule `<div>` |
-| `Scaffold` | page shell `<div>` |
-| `AppBar` | `<header>` |
-| `Drawer` | `<aside>` |
-| `FloatingActionButton` | `<button>` |
-| `BottomNavigationBar` | `<nav>` |
+| `ClipRect` / `ClipRRect` / `ClipOval` / `ClipPath` | overflow / `clip-path` |
+| `Transform` / `RotatedBox` / `FittedBox` | CSS transform / object-fit |
+| `Opacity` / `BackdropFilter` / `ColorFiltered` / `ShaderMask` | opacity, filter, mask |
+| `CustomPaint` | `<canvas>` |
+| `AnimatedContainer` (and siblings) | CSS `transition` + `update()` |
+| `GestureDetector` / `MouseRegion` | pointer events |
+| `Dismissible` / `Draggable` / `InteractiveViewer` | drag / pan / zoom |
+| `Wrap` / `GridView` / `PageView` / `AspectRatio` | flex-wrap, grid, snap-scroll |
+| `RichText` / `SelectableText` | nested `<span>` |
+| `Router` | outlet `<div>`; remounts the matched page |
 
 Numbers are CSS pixels (`16` → `16px`). Strings pass through (`"100%"`, `"2rem"`).
 
@@ -200,7 +210,22 @@ CrossAxisAlignment.center
 Alignment.topLeft
 Icons.home
 ThemeData.light()
-FloatingActionButtonLocation.endFloat
+Duration({ milliseconds: 250 })
+Curves.easeInOut
+CustomClipper.polygon("50% 0%, 100% 100%, 0% 100%")
+TextOverflow.ellipsis
+```
+
+Animated widgets keep a live DOM node after `mount()`. Call `update()` so CSS transitions can run:
+
+```ts
+const box = AnimatedContainer({
+  width: 80,
+  duration: Duration({ milliseconds: 250 }),
+  decoration: BoxDecoration({ color: Colors.blue }),
+});
+box.mount(parent);
+box.update({ width: 220 });
 ```
 
 Invalid props fail at compile time. `fontSize` belongs on `TextStyle`, not on `Text`:
@@ -212,6 +237,31 @@ Text({
 });
 ```
 
+## Routing
+
+`Router` matches the browser URL and remounts a page into an outlet. It uses the History API (`pushState` / `replaceState` / `popstate`). There is no `BuildContext` and no Flutter `Navigator`.
+
+```ts
+const router = Router({
+  routes: [
+    Route({ path: "/", builder: () => HomePage() }),
+    Route({
+      path: "/account/:id",
+      builder: (state) => AccountPage({ id: state.params.id }),
+    }),
+    Route({ path: "/home", redirect: () => "/" }),
+  ],
+  notFound: (state) => Text({ text: `No page for ${state.path}` }),
+});
+
+router.mount(document.querySelector("#app")!);
+router.go("/account/12");
+router.replace("/settings");
+router.pop();
+```
+
+`builder` receives `{ path, params, query, uri }`. Nested `routes` match leftover path segments. A route `redirect` (or a top-level `redirect`) returns a new path or `null`. Serve `index.html` for unknown paths so refresh works (Vite `appType: "spa"`).
+
 ## Design boundaries
 
-Intentionally not included: Flutter widget lifecycle, React/JSX, virtual DOM, Redux, hooks, and app-wide state. Props are static in this prototype; the `UIComponent` base is documented so getters or reactive values can be added later without changing constructors.
+Intentionally not included: Flutter widget lifecycle, React/JSX, virtual DOM, Redux, hooks, and app-wide state. Animated widgets patch the existing DOM via `update()`. `Router` remounts the matched page when the URL changes. Everything else is still constructor + `mount()`.

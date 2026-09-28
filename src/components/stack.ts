@@ -3,6 +3,7 @@ import { omitUndefined } from "../core/inspect";
 import { applyBoxStyles, type BoxStyleProps } from "../core/style";
 import { UIComponent } from "../core/UIComponent";
 import { Alignment } from "../painting/alignment";
+import { AnimatedPositionedComponent } from "./animated";
 import { PositionedComponent } from "./positioned";
 
 export interface StackProps extends Pick<
@@ -53,7 +54,10 @@ export class StackComponent extends UIComponent {
     const alignment = this.props.alignment ?? Alignment.topLeft;
     for (const child of this.props.children ?? []) {
       const childElement = child.mount(element);
-      if (!(child instanceof PositionedComponent)) {
+      if (
+        !(child instanceof PositionedComponent) &&
+        !(child instanceof AnimatedPositionedComponent)
+      ) {
         alignment.applyAbsolute(childElement.style);
         if (this.props.fit === "expand") {
           childElement.style.width = "100%";
