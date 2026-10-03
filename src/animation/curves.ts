@@ -14,7 +14,7 @@ export function applyCssTransition(
   element: HTMLElement,
   duration?: { toCss(): string } | undefined,
   curve?: Curve,
-  property = "all",
+  property = "transform, opacity",
 ): void {
   const time = duration?.toCss() ?? "250ms";
   element.style.transition = `${property} ${time} ${curve ?? Curves.easeInOut}`;

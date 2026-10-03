@@ -4,10 +4,17 @@
   "private": true,
   "type": "module",
   "description": "Flutter-inspired TypeScript UI component system that renders to native DOM and CSS.",
+  "workspaces": ["packages/pipe_x"],
   "scripts": {
     "dev": "vite",
+    "dev:graph": "vite --mode graph",
+    "dev:showcase": "vite --config vite.showcase.config.ts",
     "build": "tsc --noEmit && vite build",
+    "build:showcase": "tsc --noEmit && vite build --config vite.showcase.config.ts",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "pipe_x": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.3",

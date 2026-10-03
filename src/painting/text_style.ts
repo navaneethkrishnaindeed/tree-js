@@ -1,3 +1,4 @@
+import { FontStyle, TextAlign, TextDecoration } from "./enums";
 import { toCssSize, type Dimension } from "../core/types";
 
 export interface TextStyleProps {
@@ -5,11 +6,11 @@ export interface TextStyleProps {
   fontWeight?: string;
   color?: string;
   fontFamily?: string;
-  fontStyle?: "normal" | "italic";
+  fontStyle?: "normal" | "italic" | FontStyle;
   letterSpacing?: Dimension;
   lineHeight?: number | string;
-  textAlign?: "left" | "center" | "right" | "justify";
-  decoration?: "none" | "underline" | "line-through" | "overline";
+  textAlign?: "left" | "center" | "right" | "justify" | TextAlign;
+  decoration?: "none" | "underline" | "line-through" | "overline" | TextDecoration;
 }
 
 class TextStyleImpl {

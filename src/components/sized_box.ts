@@ -1,6 +1,7 @@
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
-import { toCssSize, type Dimension } from "../core/types";
+import { replaceChild } from "../core/patch";
+import { toCssSize, type Dimension, type UINode } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
 
 export interface SizedBoxProps {
@@ -11,13 +12,17 @@ export interface SizedBoxProps {
 
 export class SizedBoxComponent extends UIComponent {
   readonly kind = "SizedBox";
+  props: SizedBoxProps;
+  private child?: UIComponent;
 
-  constructor(readonly props: SizedBoxProps) {
+  constructor(props: SizedBoxProps) {
     super();
+    this.props = props;
+    this.child = props.child;
   }
 
   override childNodes(): UIComponent[] {
-    return this.props.child ? [this.props.child] : [];
+    return this.child ? [this.child] : [];
   }
 
   protected override inspectProps(): Record<string, unknown> {
@@ -41,11 +46,40 @@ export class SizedBoxComponent extends UIComponent {
     if (this.props.height !== undefined && this.props.child === undefined) {
       element.style.flexShrink = "0";
     }
-    this.props.child?.mount(element);
+    this.child?.mount(element);
     return element;
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof SizedBoxComponent) || !this.host) {
+      return false;
+    }
+    if (next.props.width !== undefined) {
+      this.host.style.width = toCssSize(next.props.width);
+    }
+    if (next.props.height !== undefined) {
+      this.host.style.height = toCssSize(next.props.height);
+    }
+    this.child = replaceChild(this.host, this.child, next.props.child) as UIComponent | undefined;
+    this.props = { ...next.props, child: this.child };
+    return true;
   }
 }
 
 export function SizedBox(props: SizedBoxProps): SizedBoxComponent {
   return new SizedBoxComponent(props);
+}
+
+export namespace SizedBox {
+  export function expand(props: { child?: UIComponent } = {}): SizedBoxComponent {
+    return SizedBox({ width: "100%", height: "100%", child: props.child });
+  }
+
+  export function shrink(props: { child?: UIComponent } = {}): SizedBoxComponent {
+    return SizedBox({ width: 0, height: 0, child: props.child });
+  }
+
+  export function square(size: number, child?: UIComponent): SizedBoxComponent {
+    return SizedBox({ width: size, height: size, child });
+  }
 }

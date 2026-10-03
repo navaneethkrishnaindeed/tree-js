@@ -35,6 +35,7 @@ import {
   Padding,
   PageView,
   RichText,
+  Outlet,
   Route,
   Router,
   Row,
@@ -49,6 +50,16 @@ import {
   Wrap,
   type UIComponent,
 } from "../src";
+import { Hub, HubProvider, Sink, Well, read } from "pipe_x";
+import { inspect, PipeXDev, PipeXDevOverlay } from "pipe_x/dev";
+
+const graphMode =
+  import.meta.env.MODE === "graph" ||
+  new URLSearchParams(window.location.search).has("pipe_x_graph");
+
+if (graphMode) {
+  PipeXDev.enable();
+}
 
 const placeholderSrc =
   "data:image/svg+xml," +
@@ -60,7 +71,8 @@ const placeholderSrc =
     </svg>
   `);
 
-const hero = Container({
+function buildHero(): UIComponent {
+  return Container({
   padding: EdgeInsets.all(24),
   child: Column({
     gap: 16,
@@ -88,9 +100,11 @@ const hero = Container({
       }),
     ],
   }),
-});
+  });
+}
 
-const accountCard = Card({
+function buildAccountCard(): UIComponent {
+  return Card({
   elevation: 2,
   margin: EdgeInsets.zero,
   child: Container({
@@ -151,9 +165,11 @@ const accountCard = Card({
       ],
     }),
   }),
-});
+  });
+}
 
-const menuCard = Card({
+function buildMenuCard(): UIComponent {
+  return Card({
   elevation: 2,
   margin: EdgeInsets.zero,
   child: Container({
@@ -192,6 +208,20 @@ const menuCard = Card({
             router.go("/advanced");
           },
         }),
+        ListTile({
+          leading: Icon({ icon: Icons.add }),
+          title: Text({ text: "Counter (pipe_x)" }),
+          onTap: () => {
+            router.go("/counter");
+          },
+        }),
+        ListTile({
+          leading: Icon({ icon: Icons.person }),
+          title: Text({ text: "User Well (pipe_x)" }),
+          onTap: () => {
+            router.go("/user");
+          },
+        }),
         Divider(),
         ListTile({
           leading: Icon({ icon: Icons.settings }),
@@ -203,9 +233,11 @@ const menuCard = Card({
       ],
     }),
   }),
-});
+  });
+}
 
-const overlayCard = Container({
+function buildOverlayCard(): UIComponent {
+  return Container({
   width: 400,
   child: Stack({
     width: "100%",
@@ -264,20 +296,22 @@ const overlayCard = Container({
       }),
     ],
   }),
-});
+  });
+}
 
-const animatedBox = AnimatedContainer({
-  width: 88,
-  height: 88,
-  duration: Duration({ milliseconds: 280 }),
-  curve: Curves.easeInOut,
-  decoration: BoxDecoration({
-    color: Colors.blue,
-    borderRadius: BorderRadius.circular(12),
-  }),
-});
+function buildAdvanced(): UIComponent {
+  const animatedBox = AnimatedContainer({
+    width: 88,
+    height: 88,
+    duration: Duration({ milliseconds: 280 }),
+    curve: Curves.easeInOut,
+    decoration: BoxDecoration({
+      color: Colors.blue,
+      borderRadius: BorderRadius.circular(12),
+    }),
+  });
 
-const advanced = Card({
+  return Card({
   elevation: 2,
   margin: EdgeInsets.zero,
   child: Container({
@@ -478,7 +512,8 @@ const advanced = Card({
       ],
     }),
   }),
-});
+  });
+}
 
 function homePage(): UIComponent {
   return Container({
@@ -487,9 +522,9 @@ function homePage(): UIComponent {
     child: Column({
       gap: 24,
       children: [
-        hero,
-        menuCard,
-        overlayCard,
+        buildHero(),
+        buildMenuCard(),
+        buildOverlayCard(),
         Container({
           width: 400,
           padding: EdgeInsets.all(16),
@@ -544,14 +579,14 @@ function accountPage(id: string): UIComponent {
           text: `Route param id=${id}`,
           style: TextStyle({ fontSize: 13, color: Colors.grey600 }),
         }),
-        accountCard,
+        buildAccountCard(),
       ],
     }),
   );
 }
 
 function advancedPage(): UIComponent {
-  return pageChrome(advanced);
+  return pageChrome(buildAdvanced());
 }
 
 function settingsPage(): UIComponent {
@@ -577,6 +612,97 @@ function settingsPage(): UIComponent {
           ],
         }),
       }),
+    }),
+  );
+}
+
+class CounterHub extends Hub {
+  readonly count = this.pipe(0, { key: "count" });
+
+  increment(): void {
+    this.count.value++;
+  }
+
+  decrement(): void {
+    this.count.value--;
+  }
+
+  reset(): void {
+    this.count.value = 0;
+  }
+}
+
+function counterPage(hub: CounterHub): UIComponent {
+  if (graphMode) {
+    inspect(hub);
+  }
+  return pageChrome(
+    Column({
+      gap: 16,
+      children: [
+        Text({
+          text: "Basic counter with Hub and Sink:",
+          style: TextStyle({ fontSize: 14, color: Colors.grey600 }),
+        }),
+        Sink({
+          pipe: hub.count,
+          builder: (value) =>
+            Text({
+              text: `${value}`,
+              style: TextStyle({ fontSize: 48, fontWeight: FontWeight.bold }),
+            }),
+        }),
+        Row({
+          gap: 8,
+          children: [
+            Button({ text: "-", onPressed: () => hub.decrement() }),
+            Button({ text: "+", onPressed: () => hub.increment() }),
+          ],
+        }),
+        Button({
+          text: "Reset",
+          onPressed: () => read(CounterHub).reset(),
+        }),
+      ],
+    }),
+  );
+}
+
+class UserHub extends Hub {
+  readonly firstName = this.pipe("Ada", { key: "firstName" });
+  readonly lastName = this.pipe("Lovelace", { key: "lastName" });
+  readonly age = this.pipe(36, { key: "age" });
+}
+
+function userPage(hub: UserHub): UIComponent {
+  if (graphMode) {
+    inspect(hub);
+  }
+  return pageChrome(
+    Column({
+      gap: 16,
+      children: [
+        Text({
+          text: "Well listens to multiple pipes:",
+          style: TextStyle({ fontSize: 14, color: Colors.grey600 }),
+        }),
+        Well({
+          pipes: [hub.firstName, hub.lastName, hub.age],
+          builder: () =>
+            Text({
+              text: `${hub.firstName.value} ${hub.lastName.value}, ${hub.age.value}`,
+              style: TextStyle({ fontSize: 22, fontWeight: FontWeight.bold }),
+            }),
+        }),
+        Button({
+          text: "Update",
+          onPressed: () => {
+            hub.firstName.value = "Alan";
+            hub.lastName.value = "Turing";
+            hub.age.value = 41;
+          },
+        }),
+      ],
     }),
   );
 }
@@ -608,14 +734,36 @@ document.body.appendChild(dump);
 
 const router = Router({
   routes: [
-    Route({ path: "/", builder: () => homePage() }),
-    Route({ path: "/home", redirect: () => "/" }),
     Route({
-      path: "/account/:id",
-      builder: (state) => accountPage(state.params.id ?? ""),
+      path: "/",
+      builder: () => Outlet(),
+      routes: [
+        Route({ path: "/", builder: () => homePage() }),
+        Route({ path: "/home", redirect: () => "/" }),
+        Route({
+          path: "/account/:id",
+          builder: (state) => accountPage(state.params.id ?? ""),
+        }),
+        Route({ path: "/advanced", builder: () => advancedPage() }),
+        Route({
+          path: "/counter",
+          builder: () =>
+            HubProvider({
+              create: () => new CounterHub(),
+              child: (hub) => counterPage(hub),
+            }),
+        }),
+        Route({
+          path: "/user",
+          builder: () =>
+            HubProvider({
+              create: () => new UserHub(),
+              child: (hub) => userPage(hub),
+            }),
+        }),
+        Route({ path: "/settings", builder: () => settingsPage() }),
+      ],
     }),
-    Route({ path: "/advanced", builder: () => advancedPage() }),
-    Route({ path: "/settings", builder: () => settingsPage() }),
   ],
   notFound: (state) => notFoundPage(state.path),
   onChange: (state) => {
@@ -633,9 +781,14 @@ if (!root) {
 
 router.mount(root);
 
+if (graphMode) {
+  PipeXDevOverlay.mount(document.body);
+}
+
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     router.unmount();
     dump.remove();
+    PipeXDevOverlay.unmount();
   });
 }

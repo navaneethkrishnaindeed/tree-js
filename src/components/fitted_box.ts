@@ -2,7 +2,7 @@ import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
 import { toCssSize, type Dimension } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
-import { BoxFit } from "../painting/box_fit";
+import { BoxFit, boxFitToObjectFit } from "../painting/box_fit";
 
 export interface FittedBoxProps {
   fit?: BoxFit;
@@ -45,20 +45,15 @@ export class FittedBoxComponent extends UIComponent {
     const child = this.props.child?.mount(element);
     if (child) {
       const fit = this.props.fit ?? BoxFit.contain;
-      if (fit === BoxFit.cover) {
+      child.style.objectFit = boxFitToObjectFit(fit);
+      if (fit === BoxFit.cover || fit === BoxFit.fill) {
         child.style.width = "100%";
         child.style.height = "100%";
-        child.style.objectFit = "cover";
-      } else if (fit === BoxFit.fill) {
-        child.style.width = "100%";
-        child.style.height = "100%";
-        child.style.objectFit = "fill";
       } else if (fit === BoxFit.none) {
-        child.style.objectFit = "none";
+        // intrinsic
       } else {
         child.style.maxWidth = "100%";
         child.style.maxHeight = "100%";
-        child.style.objectFit = fit === BoxFit.scaleDown ? "scale-down" : "contain";
       }
     }
     return element;

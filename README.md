@@ -35,6 +35,7 @@ app.mount(document.body);
 ```bash
 npm install
 npm run dev
+npm run dev:graph   # same demo + pipe_x dependency overlay
 ```
 
 Then open the URL Vite prints (usually `http://localhost:5173`).
@@ -56,6 +57,8 @@ tree-js/
     layout/                  FontWeight, alignments, FlexFit
     routing/                 Router, Route, path matching
     components/              Container, clip, transform, animated, gestures, ...
+  packages/
+    pipe_x/                  Separate npm package: Pipe, Hub, Sink, Well
   demo/
     index.html
     main.ts                  Runnable example
@@ -239,17 +242,25 @@ Text({
 
 ## Routing
 
-`Router` matches the browser URL and remounts a page into an outlet. It uses the History API (`pushState` / `replaceState` / `popstate`). There is no `BuildContext` and no Flutter `Navigator`.
+`Router` is a single-page outlet. It stays mounted, uses the History API (`pushState` / `replaceState` / `popstate`), and swaps only the matched page. There is no `BuildContext` and no Flutter `Navigator`.
+
+A `Route` with both `builder` and `routes` is a **layout**. It stays mounted across child navigations. Put `Outlet()` where the child page should mount. `go()` / `replace()` always commit the matched leaf from the URL.
 
 ```ts
 const router = Router({
   routes: [
-    Route({ path: "/", builder: () => HomePage() }),
     Route({
-      path: "/account/:id",
-      builder: (state) => AccountPage({ id: state.params.id }),
+      path: "/",
+      builder: () => Outlet(),
+      routes: [
+        Route({ path: "/", builder: () => HomePage() }),
+        Route({
+          path: "/account/:id",
+          builder: (state) => AccountPage({ id: state.params.id }),
+        }),
+        Route({ path: "/home", redirect: () => "/" }),
+      ],
     }),
-    Route({ path: "/home", redirect: () => "/" }),
   ],
   notFound: (state) => Text({ text: `No page for ${state.path}` }),
 });
@@ -260,8 +271,50 @@ router.replace("/settings");
 router.pop();
 ```
 
-`builder` receives `{ path, params, query, uri }`. Nested `routes` match leftover path segments. A route `redirect` (or a top-level `redirect`) returns a new path or `null`. Serve `index.html` for unknown paths so refresh works (Vite `appType: "spa"`).
+Optional chrome belongs in the layout `builder` next to `Outlet()`, not wrapped around `Router`. `builder` receives `{ path, params, query, uri }`. A route `redirect` (or a top-level `redirect`) returns a new path or `null`. Serve `index.html` for unknown paths so refresh works (Vite `appType: "spa"`).
+
+`HubProvider` on a route is **local** by default: leave the page and the hub (and its pipes) dispose. The next visit starts at initial values. Put hubs that must survive navigation on the Router:
+
+```ts
+Router({
+  hubs: { global: [() => new AuthHub()] },
+  routes: [/* layout + Outlet */],
+});
+```
+
+`HubProvider({ create: () => new AuthHub(), scope: "global", child })` reuses that instance. Globals dispose when the Router unmounts.
+
+## pipe_x
+
+State lives in a separate workspace package, [`packages/pipe_x`](packages/pipe_x). Import it as `pipe_x`, not from `../src`. Only `Sink` / `Well` slots remount when a `Pipe` changes.
+
+```ts
+import { Hub, HubProvider, Sink, Well, read } from "pipe_x";
+
+class CounterHub extends Hub {
+  readonly count = this.pipe(0, { key: "count" });
+  increment() {
+    this.count.value++;
+  }
+}
+
+HubProvider({
+  create: () => new CounterHub(),
+  child: (hub) =>
+    Column({
+      children: [
+        Sink({
+          pipe: hub.count,
+          builder: (value) => Text({ text: `${value}` }),
+        }),
+        Button({ text: "+", onPressed: () => hub.increment() }),
+      ],
+    }),
+});
+```
+
+`Well` remounts one slot when any of several pipes change. Demo `/counter` and `/user` use local hubs, so they reset when you leave the route. `npm run dev:graph` opens a live Hub/Pipe graph overlay (`pipe_x/dev`).
 
 ## Design boundaries
 
-Intentionally not included: Flutter widget lifecycle, React/JSX, virtual DOM, Redux, hooks, and app-wide state. Animated widgets patch the existing DOM via `update()`. `Router` remounts the matched page when the URL changes. Everything else is still constructor + `mount()`.
+Intentionally not included: Flutter widget lifecycle, React/JSX, virtual DOM, Redux, hooks, and app-wide state. Animated widgets patch the existing DOM via `update()`. `Router` remounts the matched page when the URL changes. `pipe_x` remounts only Sink/Well slots. Everything else is still constructor + `mount()`.

@@ -1,9 +1,9 @@
-import type { UIComponent } from "../core/UIComponent";
+import type { UINode } from "../core/types";
 import type { RouterState } from "./state";
 
 export interface RouteProps {
   path: string;
-  builder?: (state: RouterState) => UIComponent;
+  builder?: (state: RouterState) => UINode;
   redirect?: (state: RouterState) => string | null | undefined;
   routes?: RouteComponent[];
 }

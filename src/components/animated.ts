@@ -3,7 +3,9 @@ import type { Duration } from "../animation/duration";
 import { Duration as createDuration } from "../animation/duration";
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
+import { replaceChild } from "../core/patch";
 import { applyBoxStyles, type BoxStyleProps } from "../core/style";
+import type { UINode } from "../core/types";
 import { toCssSize } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
 import { Alignment } from "../painting/alignment";
@@ -43,7 +45,12 @@ export class AnimatedContainerComponent extends UIComponent {
 
   createElement(): HTMLElement {
     const element = createHost("div");
-    applyCssTransition(element, defaultDuration(this.props.duration), this.props.curve);
+    applyCssTransition(
+      element,
+      defaultDuration(this.props.duration),
+      this.props.curve,
+      "background-color, padding, margin, width, height, border-radius, opacity, transform",
+    );
     applyBoxStyles(element, this.props);
     this.props.child?.mount(element);
     return element;
@@ -54,8 +61,23 @@ export class AnimatedContainerComponent extends UIComponent {
     if (!this.host) {
       return;
     }
-    applyCssTransition(this.host, defaultDuration(this.props.duration), this.props.curve);
+    applyCssTransition(
+      this.host,
+      defaultDuration(this.props.duration),
+      this.props.curve,
+      "background-color, padding, margin, width, height, border-radius, opacity, transform",
+    );
     applyBoxStyles(this.host, this.props);
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof AnimatedContainerComponent) || !this.host) {
+      return false;
+    }
+    const incoming = next.props.child;
+    this.update({ ...next.props, child: this.props.child });
+    this.props.child = replaceChild(this.host, this.props.child, incoming) as UIComponent | undefined;
+    return true;
   }
 }
 
@@ -103,6 +125,16 @@ export class AnimatedOpacityComponent extends UIComponent {
       applyCssTransition(this.host, defaultDuration(this.props.duration), this.props.curve, "opacity");
       this.host.style.opacity = String(this.props.opacity ?? 1);
     }
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof AnimatedOpacityComponent) || !this.host) {
+      return false;
+    }
+    const incoming = next.props.child;
+    this.update({ ...next.props, child: this.props.child });
+    this.props.child = replaceChild(this.host, this.props.child, incoming) as UIComponent | undefined;
+    return true;
   }
 }
 
@@ -222,7 +254,7 @@ export class AnimatedPositionedComponent extends UIComponent {
     this.props = props;
   }
 
-  override childNodes(): UIComponent[] {
+  override childNodes(): UINode[] {
     return this.props.child ? [this.props.child] : [];
   }
 
@@ -443,3 +475,108 @@ export class AnimatedSwitcherComponent extends UIComponent {
 export function AnimatedSwitcher(props: AnimatedSwitcherProps = {}): AnimatedSwitcherComponent {
   return new AnimatedSwitcherComponent(props);
 }
+
+export interface AnimatedScaleProps extends AnimatedProps {
+  scale?: number;
+  alignment?: Alignment;
+  child?: UIComponent;
+}
+
+export class AnimatedScaleComponent extends UIComponent {
+  readonly kind = "AnimatedScale";
+  props: AnimatedScaleProps;
+
+  constructor(props: AnimatedScaleProps = {}) {
+    super();
+    this.props = props;
+  }
+
+  override childNodes(): UIComponent[] {
+    return this.props.child ? [this.props.child] : [];
+  }
+
+  createElement(): HTMLElement {
+    const element = createHost("div");
+    applyCssTransition(element, defaultDuration(this.props.duration), this.props.curve, "transform");
+    const origin = this.props.alignment ?? Alignment.center;
+    element.style.transformOrigin = `${((origin.x + 1) / 2) * 100}% ${((origin.y + 1) / 2) * 100}%`;
+    element.style.transform = `scale(${this.props.scale ?? 1})`;
+    element.style.willChange = "transform";
+    this.props.child?.mount(element);
+    return element;
+  }
+
+  update(next: Partial<AnimatedScaleProps>): void {
+    this.props = { ...this.props, ...next };
+    if (this.host) {
+      applyCssTransition(this.host, defaultDuration(this.props.duration), this.props.curve, "transform");
+      this.host.style.transform = `scale(${this.props.scale ?? 1})`;
+    }
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof AnimatedScaleComponent) || !this.host) {
+      return false;
+    }
+    const incoming = next.props.child;
+    this.update({ ...next.props, child: this.props.child });
+    this.props.child = replaceChild(this.host, this.props.child, incoming) as UIComponent | undefined;
+    return true;
+  }
+}
+
+export function AnimatedScale(props: AnimatedScaleProps = {}): AnimatedScaleComponent {
+  return new AnimatedScaleComponent(props);
+}
+
+export interface AnimatedSlideProps extends AnimatedProps {
+  offset?: { dx: number; dy: number };
+  child?: UIComponent;
+}
+
+export class AnimatedSlideComponent extends UIComponent {
+  readonly kind = "AnimatedSlide";
+  props: AnimatedSlideProps;
+
+  constructor(props: AnimatedSlideProps = {}) {
+    super();
+    this.props = props;
+  }
+
+  override childNodes(): UIComponent[] {
+    return this.props.child ? [this.props.child] : [];
+  }
+
+  createElement(): HTMLElement {
+    const element = createHost("div");
+    applyCssTransition(element, defaultDuration(this.props.duration), this.props.curve, "transform");
+    const offset = this.props.offset ?? { dx: 0, dy: 0 };
+    element.style.transform = `translate(${offset.dx * 100}%, ${offset.dy * 100}%)`;
+    element.style.willChange = "transform";
+    this.props.child?.mount(element);
+    return element;
+  }
+
+  update(next: Partial<AnimatedSlideProps>): void {
+    this.props = { ...this.props, ...next };
+    if (this.host) {
+      const offset = this.props.offset ?? { dx: 0, dy: 0 };
+      this.host.style.transform = `translate(${offset.dx * 100}%, ${offset.dy * 100}%)`;
+    }
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof AnimatedSlideComponent) || !this.host) {
+      return false;
+    }
+    const incoming = next.props.child;
+    this.update({ ...next.props, child: this.props.child });
+    this.props.child = replaceChild(this.host, this.props.child, incoming) as UIComponent | undefined;
+    return true;
+  }
+}
+
+export function AnimatedSlide(props: AnimatedSlideProps = {}): AnimatedSlideComponent {
+  return new AnimatedSlideComponent(props);
+}
+

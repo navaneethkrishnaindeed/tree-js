@@ -2,6 +2,7 @@ import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
 import { UIComponent } from "../core/UIComponent";
 import { Offset } from "../painting/offset";
+import { HitTestBehavior } from "../painting/enums";
 
 export interface GestureDetectorProps {
   child?: UIComponent;
@@ -11,6 +12,7 @@ export interface GestureDetectorProps {
   onPanStart?: (offset: Offset) => void;
   onPanUpdate?: (offset: Offset) => void;
   onPanEnd?: () => void;
+  behavior?: HitTestBehavior;
 }
 
 export class GestureDetectorComponent extends UIComponent {
@@ -37,7 +39,13 @@ export class GestureDetectorComponent extends UIComponent {
 
   createElement(): HTMLElement {
     const element = createHost("div");
-    element.style.touchAction = "none";
+    const pan = Boolean(this.props.onPanStart || this.props.onPanUpdate || this.props.onPanEnd);
+    if (pan) {
+      element.style.touchAction = "none";
+    }
+    if (this.props.behavior === HitTestBehavior.opaque) {
+      element.style.pointerEvents = "auto";
+    }
     this.props.child?.mount(element);
 
     let longPressTimer: number | undefined;

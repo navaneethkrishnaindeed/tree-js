@@ -1,5 +1,8 @@
+import { ensureFrameworkStyles } from "./framework_style";
 import { formatProp, omitUndefined, toTreeValue } from "./inspect";
-import type { ComponentTreeNode } from "./types";
+import type { Key } from "./key";
+import { readKey } from "./key";
+import type { ComponentTreeNode, UINode } from "./types";
 
 /**
  * Base class for every UI node.
@@ -10,22 +13,42 @@ import type { ComponentTreeNode } from "./types";
  * Future reactivity can wrap prop values (for example `text: () => user.name`)
  * without changing the constructor API. v1 treats all props as static.
  */
-export abstract class UIComponent {
+export abstract class UIComponent implements UINode {
   abstract readonly kind: string;
+  key?: Key;
+
+  constructor(props?: { key?: Key }) {
+    this.key = props?.key;
+  }
 
   mount(parent: Element | DocumentFragment): HTMLElement {
+    ensureFrameworkStyles();
+    if (this.host) {
+      this.unmount();
+    }
     const element = this.createElement();
     this.host = element;
+    this.key = readKey(this);
     element.setAttribute("data-ui", this.kind);
     parent.appendChild(element);
     return element;
   }
 
+  /** Same-kind rebuild: subclasses patch live DOM instead of remounting. */
+  patchFrom(_next: UINode): boolean {
+    return false;
+  }
+
   /** Remove this node and its descendants from the DOM and clear `host`. */
   unmount(): void {
     for (const child of this.childNodes()) {
-      child.unmount();
+      try {
+        child.unmount();
+      } catch (error) {
+        console.error(`Failed to unmount ${child.kind}`, error);
+      }
     }
+    this.host?.replaceChildren();
     this.host?.remove();
     this.host = undefined;
   }
@@ -35,7 +58,7 @@ export abstract class UIComponent {
 
   abstract createElement(): HTMLElement;
 
-  childNodes(): UIComponent[] {
+  childNodes(): UINode[] {
     return [];
   }
 

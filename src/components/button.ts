@@ -2,6 +2,7 @@ import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
 import { applyBoxStyles } from "../core/style";
 import { UIComponent } from "../core/UIComponent";
+import type { UINode } from "../core/types";
 import { FontWeight } from "../layout/font_weight";
 import { BorderRadius } from "../painting/border_radius";
 import { BoxDecoration } from "../painting/box_decoration";
@@ -10,7 +11,8 @@ import { EdgeInsets } from "../painting/edge_insets";
 import { TextStyle, type TextStyle as TextStyleValue } from "../painting/text_style";
 
 export interface ButtonProps {
-  text: string;
+  text?: string;
+  child?: UIComponent;
   onPressed?: () => void;
   style?: TextStyleValue;
   padding?: EdgeInsets;
@@ -23,6 +25,10 @@ export class ButtonComponent extends UIComponent {
 
   constructor(readonly props: ButtonProps) {
     super();
+  }
+
+  override childNodes(): UINode[] {
+    return this.props.child ? [this.props.child] : [];
   }
 
   protected override inspectProps(): Record<string, unknown> {
@@ -39,7 +45,6 @@ export class ButtonComponent extends UIComponent {
   createElement(): HTMLElement {
     const element = createHost("button");
     element.type = "button";
-    element.textContent = this.props.text;
     if (this.props.disabled) {
       element.disabled = true;
     }
@@ -59,6 +64,10 @@ export class ButtonComponent extends UIComponent {
     element.style.border = element.style.border || "none";
     element.style.cursor = this.props.disabled ? "not-allowed" : "pointer";
     element.style.fontFamily = "inherit";
+    element.style.display = "inline-flex";
+    element.style.alignItems = "center";
+    element.style.justifyContent = "center";
+    element.style.gap = "8px";
 
     const textStyle =
       this.props.style ??
@@ -68,6 +77,12 @@ export class ButtonComponent extends UIComponent {
         color: Colors.white,
       });
     textStyle.applyTo(element.style);
+
+    if (this.props.child) {
+      this.props.child.mount(element);
+    } else {
+      element.textContent = this.props.text ?? "";
+    }
 
     if (this.props.onPressed && !this.props.disabled) {
       element.addEventListener("click", this.props.onPressed);

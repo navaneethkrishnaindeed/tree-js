@@ -1,3 +1,5 @@
+import type { Key } from "./key";
+
 /** A CSS size: numbers are treated as px, strings pass through (`"100%"`, `"2rem"`). */
 export type Dimension = number | string;
 
@@ -13,4 +15,17 @@ export interface ComponentTreeNode {
   kind: string;
   props: Record<string, unknown>;
   children: ComponentTreeNode[];
+}
+
+/** Anything that can sit in a parent slot, including pipe_x Sink / Well. */
+export interface UINode {
+  readonly kind: string;
+  key?: Key;
+  host?: HTMLElement;
+  mount(parent: Element | DocumentFragment): HTMLElement;
+  unmount(): void;
+  childNodes(): UINode[];
+  toTree(): ComponentTreeNode;
+  debugDump(indent?: number): string;
+  patchFrom?(next: UINode): boolean;
 }

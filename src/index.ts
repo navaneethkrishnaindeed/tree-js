@@ -1,6 +1,8 @@
 export { UIComponent } from "./core/UIComponent";
-export type { ComponentTreeNode, Dimension, Overflow, Position } from "./core/types";
+export type { ComponentTreeNode, Dimension, Overflow, Position, UINode } from "./core/types";
 export { toCssSize } from "./core/types";
+export { ValueKey, UniqueKey, ObjectKey } from "./core/key";
+export type { Key } from "./core/key";
 
 export { EdgeInsets } from "./painting/edge_insets";
 export { BorderRadius } from "./painting/border_radius";
@@ -18,6 +20,29 @@ export { Alignment } from "./painting/alignment";
 export { IconData, Icons } from "./painting/icons";
 export { ColorScheme, ThemeData } from "./painting/theme";
 export type { ColorSchemeProps, ThemeDataProps } from "./painting/theme";
+export { LinearGradient, RadialGradient } from "./painting/gradient";
+export type {
+  Gradient,
+  LinearGradientProps,
+  RadialGradientProps,
+} from "./painting/gradient";
+export {
+  Axis,
+  StackFit,
+  Clip,
+  BoxShape,
+  TextAlign,
+  FontStyle,
+  TextDecoration,
+  HitTestBehavior,
+  DismissDirection,
+  BorderStyle,
+  VerticalDirection,
+  ImageRepeat,
+  ScrollbarMode,
+  WrapAlignment,
+  WrapCrossAlignment,
+} from "./painting/enums";
 
 export { FontWeight } from "./layout/font_weight";
 export {
@@ -46,10 +71,14 @@ export { Text, TextComponent } from "./components/text";
 export type { TextProps } from "./components/text";
 export { Button, ButtonComponent } from "./components/button";
 export type { ButtonProps } from "./components/button";
-export { TextField, TextFieldComponent } from "./components/text_field";
+export { TextField, TextFieldComponent, InputDecoration } from "./components/text_field";
 export type { TextFieldProps } from "./components/text_field";
 export { Image, ImageComponent } from "./components/image";
 export type { ImageProps } from "./components/image";
+export { Video, VideoComponent } from "./components/video";
+export type { VideoProps } from "./components/video";
+export { IFrame, IFrameComponent } from "./components/iframe";
+export type { IFrameProps } from "./components/iframe";
 export { Padding, PaddingComponent } from "./components/padding";
 export type { PaddingProps } from "./components/padding";
 export { SizedBox, SizedBoxComponent } from "./components/sized_box";
@@ -68,10 +97,28 @@ export { Divider, DividerComponent } from "./components/divider";
 export type { DividerProps } from "./components/divider";
 export { ListView, ListViewComponent } from "./components/list_view";
 export type { ListViewProps } from "./components/list_view";
+export { GridView, GridViewComponent } from "./components/grid_view";
+export type { GridViewProps } from "./components/grid_view";
+export { PageView, PageViewComponent } from "./components/page_view";
+export type { PageViewProps } from "./components/page_view";
+export {
+  ConstrainedBox,
+  ConstrainedBoxComponent,
+  FractionallySizedBox,
+  FractionallySizedBoxComponent,
+  BoxConstraints,
+} from "./components/constrained_box";
+export type {
+  ConstrainedBoxProps,
+  FractionallySizedBoxProps,
+} from "./components/constrained_box";
 
 export { Duration } from "./animation/duration";
 export { Curves } from "./animation/curves";
 export type { Curve } from "./animation/curves";
+export { AnimationController } from "./animation/controller";
+export type { AnimationStatus } from "./animation/controller";
+export { Tween, lerpDouble } from "./animation/tween";
 
 export { Offset } from "./painting/offset";
 export { BoxFit } from "./painting/box_fit";
@@ -134,6 +181,10 @@ export {
   AnimatedCrossFadeComponent,
   AnimatedSwitcher,
   AnimatedSwitcherComponent,
+  AnimatedScale,
+  AnimatedScaleComponent,
+  AnimatedSlide,
+  AnimatedSlideComponent,
   CrossFadeState,
 } from "./components/animated";
 export type {
@@ -145,6 +196,8 @@ export type {
   AnimatedSizeProps,
   AnimatedCrossFadeProps,
   AnimatedSwitcherProps,
+  AnimatedScaleProps,
+  AnimatedSlideProps,
 } from "./components/animated";
 export {
   GestureDetector,
@@ -181,7 +234,6 @@ export type {
 export {
   Wrap,
   WrapComponent,
-  WrapAlignment,
   AspectRatio,
   AspectRatioComponent,
   OverflowBox,
@@ -190,10 +242,6 @@ export {
   VisibilityComponent,
   Offstage,
   OffstageComponent,
-  GridView,
-  GridViewComponent,
-  PageView,
-  PageViewComponent,
 } from "./components/extra_layout";
 export type {
   WrapProps,
@@ -201,8 +249,6 @@ export type {
   OverflowBoxProps,
   VisibilityProps,
   OffstageProps,
-  GridViewProps,
-  PageViewProps,
 } from "./components/extra_layout";
 export {
   TextSpan,
@@ -213,8 +259,30 @@ export {
 } from "./components/rich_text";
 export type { TextSpanProps, RichTextProps, SelectableTextProps } from "./components/rich_text";
 
+export { ScrollController } from "./scrolling/scroll_controller";
+export type { ScrollPosition } from "./scrolling/scroll_controller";
+export { SingleChildScrollView, SingleChildScrollViewComponent } from "./scrolling/single_child_scroll_view";
+export type { SingleChildScrollViewProps } from "./scrolling/single_child_scroll_view";
+export { NotificationListener, NotificationListenerComponent } from "./scrolling/notification";
+export type { ScrollNotification } from "./scrolling/notification";
+
+export { Theme, ThemeComponent } from "./widgets/theme";
+export { SafeArea, SafeAreaComponent } from "./widgets/safe_area";
+export type { SafeAreaProps } from "./widgets/safe_area";
+export {
+  CircleAvatar,
+  InkWell,
+  AppBar,
+  AppBarComponent,
+  Scaffold,
+  ScaffoldComponent,
+  FutureBuilder,
+} from "./widgets/material";
+export type { AppBarProps, ScaffoldProps } from "./widgets/material";
+
 export { Route, RouteComponent } from "./routing/route";
 export type { RouteProps } from "./routing/route";
 export { Router, RouterComponent } from "./routing/router";
-export type { RouterProps } from "./routing/router";
+export type { RouterHubs, RouterProps } from "./routing/router";
+export { Outlet, OutletComponent } from "./routing/outlet";
 export type { RouterState } from "./routing/state";

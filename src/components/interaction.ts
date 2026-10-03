@@ -1,11 +1,12 @@
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
 import { UIComponent } from "../core/UIComponent";
+import { DismissDirection } from "../painting/enums";
 
 export interface DismissibleProps {
   child?: UIComponent;
   onDismissed?: () => void;
-  direction?: "endToStart" | "startToEnd" | "horizontal";
+  direction?: DismissDirection | "endToStart" | "startToEnd" | "horizontal";
 }
 
 export class DismissibleComponent extends UIComponent {

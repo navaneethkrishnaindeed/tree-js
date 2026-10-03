@@ -1,5 +1,7 @@
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
+import { replaceChild } from "../core/patch";
+import type { UINode } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
 import { Alignment } from "../painting/alignment";
 
@@ -12,17 +14,21 @@ export interface AlignProps {
 
 export class AlignComponent extends UIComponent {
   readonly kind: "Align" | "Center";
+  props: AlignProps;
+  private child?: UIComponent;
 
   constructor(
-    readonly props: AlignProps,
+    props: AlignProps,
     kind: "Align" | "Center" = "Align",
   ) {
     super();
     this.kind = kind;
+    this.props = props;
+    this.child = props.child;
   }
 
   override childNodes(): UIComponent[] {
-    return this.props.child ? [this.props.child] : [];
+    return this.child ? [this.child] : [];
   }
 
   protected override inspectProps(): Record<string, unknown> {
@@ -42,14 +48,26 @@ export class AlignComponent extends UIComponent {
     element.style.width =
       this.props.widthFactor !== undefined
         ? `${this.props.widthFactor * 100}%`
-        : "100%";
+        : this.props.widthFactor === undefined && this.props.heightFactor === undefined
+          ? "auto"
+          : "100%";
     if (this.props.heightFactor !== undefined) {
       element.style.height = `${this.props.heightFactor * 100}%`;
-    } else {
-      element.style.minHeight = "100%";
     }
-    this.props.child?.mount(element);
+    this.child?.mount(element);
     return element;
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof AlignComponent) || next.kind !== this.kind || !this.host) {
+      return false;
+    }
+    const alignment = next.props.alignment ?? Alignment.center;
+    this.host.style.justifyContent = alignment.toJustifyContent();
+    this.host.style.alignItems = alignment.toAlignItems();
+    this.child = replaceChild(this.host, this.child, next.props.child) as UIComponent | undefined;
+    this.props = { ...next.props, child: this.child };
+    return true;
   }
 }
 

@@ -1,7 +1,9 @@
+import type { BorderStyle } from "./enums";
+
 export interface BorderSide {
   color?: string;
   width?: number;
-  style?: "solid" | "dashed" | "dotted" | "none";
+  style?: "solid" | "dashed" | "dotted" | "none" | BorderStyle;
 }
 
 function sideToCss(side: BorderSide): string {

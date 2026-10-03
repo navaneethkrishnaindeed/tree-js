@@ -15,6 +15,7 @@ export const CrossAxisAlignment = {
   center: "center",
   end: "flex-end",
   stretch: "stretch",
+  baseline: "baseline",
 } as const;
 
 export type CrossAxisAlignment =

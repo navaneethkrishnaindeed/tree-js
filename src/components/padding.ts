@@ -1,5 +1,7 @@
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
+import { replaceChild } from "../core/patch";
+import type { UINode } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
 import type { EdgeInsets } from "../painting/edge_insets";
 
@@ -10,13 +12,17 @@ export interface PaddingProps {
 
 export class PaddingComponent extends UIComponent {
   readonly kind = "Padding";
+  props: PaddingProps;
+  private child?: UIComponent;
 
-  constructor(readonly props: PaddingProps) {
+  constructor(props: PaddingProps) {
     super();
+    this.props = props;
+    this.child = props.child;
   }
 
   override childNodes(): UIComponent[] {
-    return this.props.child ? [this.props.child] : [];
+    return this.child ? [this.child] : [];
   }
 
   protected override inspectProps(): Record<string, unknown> {
@@ -28,8 +34,18 @@ export class PaddingComponent extends UIComponent {
   createElement(): HTMLElement {
     const element = createHost("div");
     element.style.padding = this.props.padding.toCss();
-    this.props.child?.mount(element);
+    this.child?.mount(element);
     return element;
+  }
+
+  override patchFrom(next: UINode): boolean {
+    if (!(next instanceof PaddingComponent) || !this.host) {
+      return false;
+    }
+    this.host.style.padding = next.props.padding.toCss();
+    this.child = replaceChild(this.host, this.child, next.props.child) as UIComponent | undefined;
+    this.props = { ...next.props, child: this.child };
+    return true;
   }
 }
 

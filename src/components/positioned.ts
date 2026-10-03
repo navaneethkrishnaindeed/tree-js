@@ -1,6 +1,6 @@
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
-import { toCssSize, type Dimension } from "../core/types";
+import { toCssSize, type Dimension, type UINode } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
 
 export interface PositionedProps {
@@ -10,7 +10,7 @@ export interface PositionedProps {
   left?: Dimension;
   width?: Dimension;
   height?: Dimension;
-  child?: UIComponent;
+  child?: UINode;
 }
 
 export class PositionedComponent extends UIComponent {
@@ -20,7 +20,7 @@ export class PositionedComponent extends UIComponent {
     super();
   }
 
-  override childNodes(): UIComponent[] {
+  override childNodes(): UINode[] {
     return this.props.child ? [this.props.child] : [];
   }
 
@@ -66,7 +66,7 @@ export function Positioned(props: PositionedProps): PositionedComponent {
 }
 
 export namespace Positioned {
-  export function fill(props: { child?: UIComponent } = {}): PositionedComponent {
+  export function fill(props: { child?: UINode } = {}): PositionedComponent {
     return Positioned({
       top: 0,
       right: 0,

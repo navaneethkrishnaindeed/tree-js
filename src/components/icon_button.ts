@@ -1,5 +1,6 @@
 import { createHost } from "../core/dom";
 import { omitUndefined } from "../core/inspect";
+import { toCssSize, type Dimension } from "../core/types";
 import { UIComponent } from "../core/UIComponent";
 import { Colors } from "../painting/colors";
 import { EdgeInsets } from "../painting/edge_insets";
@@ -10,6 +11,8 @@ export interface IconButtonProps {
   tooltip?: string;
   color?: string;
   disabled?: boolean;
+  size?: Dimension;
+  padding?: EdgeInsets;
 }
 
 export class IconButtonComponent extends UIComponent {
@@ -28,6 +31,7 @@ export class IconButtonComponent extends UIComponent {
       tooltip: this.props.tooltip,
       color: this.props.color,
       disabled: this.props.disabled,
+      size: this.props.size,
       onPressed: this.props.onPressed,
     });
   }
@@ -42,9 +46,10 @@ export class IconButtonComponent extends UIComponent {
       element.disabled = true;
     }
 
-    element.style.width = "48px";
-    element.style.height = "48px";
-    element.style.padding = EdgeInsets.all(12).toCss();
+    const size = this.props.size ?? 48;
+    element.style.width = toCssSize(size);
+    element.style.height = toCssSize(size);
+    element.style.padding = (this.props.padding ?? EdgeInsets.all(12)).toCss();
     element.style.border = "none";
     element.style.background = "transparent";
     element.style.borderRadius = "50%";

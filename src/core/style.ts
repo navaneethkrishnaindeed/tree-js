@@ -1,9 +1,12 @@
 import { Alignment } from "../painting/alignment";
 import type { BoxDecoration } from "../painting/box_decoration";
+import { applyClip, type Clip } from "../painting/enums";
 import type { EdgeInsets } from "../painting/edge_insets";
+import type { Key } from "./key";
 import { toCssSize, type Dimension, type Overflow, type Position } from "./types";
 
 export interface BoxStyleProps {
+  key?: Key;
   width?: Dimension;
   height?: Dimension;
   minWidth?: Dimension;
@@ -17,8 +20,10 @@ export interface BoxStyleProps {
   alignment?: Alignment;
   opacity?: number;
   overflow?: Overflow;
+  clipBehavior?: Clip;
   position?: Position;
   display?: string;
+  zIndex?: number;
 }
 
 export function applyBoxStyles(
@@ -62,8 +67,12 @@ export function applyBoxStyles(
   if (props.overflow !== undefined) {
     style.overflow = props.overflow;
   }
+  applyClip(style, props.clipBehavior);
   if (props.position !== undefined) {
     style.position = props.position;
+  }
+  if (props.zIndex !== undefined) {
+    style.zIndex = String(props.zIndex);
   }
   if (props.display !== undefined) {
     style.display = props.display;
